@@ -51,10 +51,13 @@ fn main() {
     // Ownership and functions
     // s comes into scope.
     let s = String::from("hello");
+    // This will not compile, becuase ownership changed from s to t and we are using s in
+    // takes_ownership function below.
+    // let t = s;
 
     takes_ownership(s);
     // s's value moves into a function and no longer valid.
-    // println!("{s}")
+    // println!("{s}");
 
     let x = 5;
 
