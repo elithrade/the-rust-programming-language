@@ -43,11 +43,23 @@ fn dbg_ownership() {
     println!("--- dbg!(&rect1) ---");
     dbg!(&rect1);
 
+    let rect2 = scale_again(&rect1);
+
     println!("--- dbg!(rect1) ---");
     dbg!(rect1);
 
+    println!("--- dbg!(rect2) ---");
+    dbg!(&rect2);
+
     // This won't compile because the ownership is taken.
     // println!("rect1 is {:?}", rect1);
+}
+
+fn scale_again(rect1: &Rectangle) -> Rectangle {
+    Rectangle {
+        width: rect1.width * 2,
+        height: rect1.height * 3,
+    }
 }
 
 fn area(rectangle: &Rectangle) -> u32 {
