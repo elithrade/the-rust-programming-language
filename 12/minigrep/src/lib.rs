@@ -11,6 +11,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     println!("With text:\n{contents}");
 
+    for line in search(&config.query, &contents) {
+        println!("{line}");
+    }
+
     Ok(())
 }
 
@@ -28,5 +32,37 @@ impl Config {
         println!("In file '{}'", file_path);
 
         Ok(Config { query, file_path })
+    }
+}
+
+// Explicit lifetime 'a in the signature of function and use the lifetime with the contents
+// argument and return value. The argument's lifetime is connected to the lifetime of the return
+// value. The data returned by search function will live as long as the data passed into the search
+// function in the contents argument.
+fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
 }
