@@ -1,8 +1,9 @@
-use std::{error::Error, fs};
+use std::{env, error::Error, fs};
 
 pub struct Config {
     pub query: String,
     pub file_path: String,
+    pub ignore_case: bool,
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
@@ -11,7 +12,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     println!("With text:\n{contents}");
 
-    for line in search_case_insensitive(&config.query, &contents) {
+    let results = if config.ignore_case {
+        // IGNORE_CASE=1 cargo run -- text file_path
+        search_case_insensitive(&config.query, &contents)
+    } else {
+        search(&config.query, &contents)
+    };
+
+    for line in results {
         println!("{line}");
     }
 
@@ -27,11 +35,17 @@ impl Config {
 
         let query = args[1].clone();
         let file_path = args[2].clone();
+        // Check any environment variable named IGNORE_CASE.
+        let ignore_case = env::var("IGNORE_CASE").is_ok();
 
         println!("Searching for '{}'", query);
         println!("In file '{}'", file_path);
 
-        Ok(Config { query, file_path })
+        Ok(Config {
+            query,
+            file_path,
+            ignore_case,
+        })
     }
 }
 
