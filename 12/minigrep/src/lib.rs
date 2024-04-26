@@ -10,8 +10,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // ? will return the errors from current function for the caller to handle.
     let contents = fs::read_to_string(config.file_path)?;
 
-    println!("With text:\n{contents}");
-
     let results = if config.ignore_case {
         // IGNORE_CASE=1 cargo run -- text file_path
         search_case_insensitive(&config.query, &contents)
@@ -37,9 +35,6 @@ impl Config {
         let file_path = args[2].clone();
         // Check any environment variable named IGNORE_CASE.
         let ignore_case = env::var("IGNORE_CASE").is_ok();
-
-        println!("Searching for '{}'", query);
-        println!("In file '{}'", file_path);
 
         Ok(Config {
             query,

@@ -8,14 +8,14 @@ fn main() {
 
     // If value is error the method calls the code inside 'closure'.
     let config = Config::build(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {err}");
+        eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
 
     // if let rather than unwrap_or_else to check errors from run function.
     // Since run doesnot return value we only handles the case when there is an error.
     if let Err(e) = run(config) {
-        println!("Application error: {e}");
+        eprintln!("Application error: {e}");
         process::exit(1);
     }
 }
