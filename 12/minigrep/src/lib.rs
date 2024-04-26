@@ -11,7 +11,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     println!("With text:\n{contents}");
 
-    for line in search(&config.query, &contents) {
+    for line in search_case_insensitive(&config.query, &contents) {
         println!("{line}");
     }
 
@@ -39,11 +39,26 @@ impl Config {
 // argument and return value. The argument's lifetime is connected to the lifetime of the return
 // value. The data returned by search function will live as long as the data passed into the search
 // function in the contents argument.
-fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let mut results = Vec::new();
 
     for line in contents.lines() {
         if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+    // to_lowercase() will create a new string rather than string slice.
+    let query = query.to_lowercase();
+
+    for line in contents.lines() {
+        // Since query is now a string, we have to pass in by reference (borrowing).
+        if line.to_lowercase().contains(&query) {
             results.push(line);
         }
     }
@@ -86,6 +101,9 @@ safe, fast, productive.
 Pick three.
 Trust me.";
 
-        assert_eq!(vec!["Rust:", "Trust me."], search(query, contents));
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, contents)
+        );
     }
 }
