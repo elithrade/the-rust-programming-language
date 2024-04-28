@@ -3,11 +3,10 @@ use std::{env, process};
 use minigrep::{run, Config};
 
 fn main() {
-    // collect() turns iterator into a vector.
-    let args: Vec<String> = env::args().collect();
-
     // If value is error the method calls the code inside 'closure'.
-    let config = Config::build(&args).unwrap_or_else(|err| {
+    // Chapter 13.3: Change build method to take an iterator to avoid cloning.
+    // env.args will be consumed bu build method.
+    let config = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
