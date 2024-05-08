@@ -51,4 +51,12 @@ mod tests {
         let result = avg_collection.average();
         assert_eq!(result, 2.5);
     }
+
+    #[test]
+    #[should_panic]
+    fn it_panics() {
+        let avg_collection = AveragedCollection::default();
+        let result = avg_collection.average();
+        assert_eq!(result, 0.0);
+    }
 }
