@@ -5,12 +5,19 @@ pub struct Post {
 }
 
 impl Post {
+    pub fn new() -> Post {
+        Post {
+            state: Some(Box::new(Draft {})),
+            content: String::new(),
+        }
+    }
+
     pub fn add_text(&mut self, text: &str) {
         self.content.push_str(text);
     }
 
     pub fn content(&self) -> &str {
-        ""
+        self.state.as_ref().unwrap().content(self)
     }
 
     pub fn request_review(&mut self) {
@@ -26,10 +33,19 @@ impl Post {
     }
 }
 
+impl Default for Post {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // State trait defines the behaviour shared by different post states.
 trait State {
     fn request_review(self: Box<Self>) -> Box<dyn State>;
     fn approve(self: Box<Self>) -> Box<dyn State>;
+    fn content<'a>(&self, _post: &'a Post) -> &'a str {
+        ""
+    }
 }
 
 // The default state of a Post.
@@ -48,6 +64,22 @@ impl State for Draft {
 struct PendingReview {}
 
 impl State for PendingReview {
+    fn request_review(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+
+    fn approve(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+}
+
+struct Published {}
+
+impl State for Published {
+    fn content<'a>(&self, post: &'a Post) -> &'a str {
+        &post.content
+    }
+
     fn request_review(self: Box<Self>) -> Box<dyn State> {
         self
     }
