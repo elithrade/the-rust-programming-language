@@ -8,7 +8,7 @@ pub struct ThreadPool {
     sender: mpsc::Sender<Job>,
 }
 
-struct Job;
+type Job = Box<dyn FnOnce() + Send + 'static>;
 
 /// Creates a new threal pool.
 ///
@@ -42,6 +42,9 @@ impl ThreadPool {
         // don't know how long the thread will take to execute.
         F: FnOnce() + Send + 'static,
     {
+        let job = Box::new(f);
+
+        self.sender.send(job).unwrap();
     }
 }
 
@@ -55,7 +58,13 @@ impl Worker {
     // use Arc<Mutex<T>>. The Arc type will allow multiple workers own the receiver, and Mutex will
     // ensure only one worker gets the job from the receiver at a time.
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-        let thread = thread::spawn(|| {});
+        let thread = thread::spawn(move || loop {
+            let job = receiver.lock().unwrap().recv().unwrap();
+
+            println!("Workker {id} got a job; executing.");
+
+            job();
+        });
 
         Worker { id, thread }
     }
