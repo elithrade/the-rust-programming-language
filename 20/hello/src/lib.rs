@@ -1,8 +1,14 @@
-use std::thread;
+use std::{
+    sync::{mpsc, Arc, Mutex},
+    thread,
+};
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
+    sender: mpsc::Sender<Job>,
 }
+
+struct Job;
 
 /// Creates a new threal pool.
 ///
@@ -15,13 +21,19 @@ impl ThreadPool {
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
 
+        // Each thread poll will create and hold on to the sender.
+        let (sender, receiver) = mpsc::channel();
+
+        let receiver = Arc::new(Mutex::new(receiver));
+
         let mut workers = Vec::with_capacity(size);
 
         for id in 0..size {
-            workers.push(Worker::new(id));
+            // Each workder will hold onto the receiver.
+            workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
 
-        ThreadPool { workers }
+        ThreadPool { workers, sender }
     }
 
     pub fn execute<F>(&self, f: F)
@@ -39,7 +51,10 @@ struct Worker {
 }
 
 impl Worker {
-    fn new(id: usize) -> Worker {
+    // To share onwership across multiple threads and allow threads to mutate the value, we need to
+    // use Arc<Mutex<T>>. The Arc type will allow multiple workers own the receiver, and Mutex will
+    // ensure only one worker gets the job from the receiver at a time.
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
         let thread = thread::spawn(|| {});
 
         Worker { id, thread }
